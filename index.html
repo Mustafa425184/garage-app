@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>دفتر حسابات المعرض</title>
+<meta name="description" content="برنامج حسابات تصليح ومصنعية العربيات في المعرض">
+<meta name="theme-color" content="#e39a3b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1c1815;
+    --bg-2: #241f1b;
+    --card: #2b241f;
+    --card-2: #332b24;
+    --line: #423a32;
+    --amber: #e39a3b;
+    --amber-dim: #b87c2c;
+    --green: #5fa373;
+    --red: #c9604f;
+    --text: #f3ece0;
+    --muted: #a89a87;
+    --muted-2: #7d7060;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 900px 500px at 50% -10%, #33291f 0%, transparent 60%),
+      radial-gradient(ellipse at top, #2a231d 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Cairo', sans-serif;
+    min-height:100vh;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:18px 16px 0;}
+
+  header{
+    display:flex; align-items:center; gap:12px;
+    padding:6px 2px 20px;
+  }
+  .logo{
+    width:46px; height:46px; border-radius:13px;
+    background:linear-gradient(155deg, #f0ac54, var(--amber-dim));
+    display:flex; align-items:center; justify-content:center;
+    font-size:23px; flex-shrink:0;
+    box-shadow: 0 6px 16px -2px rgba(227,154,59,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+    transform: rotate(-4deg);
+  }
+  header h1{font-size:20px; font-weight:800; margin:0; letter-spacing:0.2px;}
+  header p{margin:3px 0 0; font-size:12.5px; color:var(--muted); font-weight:500; letter-spacing:0.3px;}
+
+  /* Ticket */
+  .ticket{
+    position:relative;
+    background: linear-gradient(165deg, var(--card-2), #2c241d);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 22px 18px;
+    margin-bottom:22px;
+    overflow:hidden;
+    box-shadow: 0 14px 30px -14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .ticket::before, .ticket::after{
+    content:""; position:absolute; width:22px; height:22px;
+    background:var(--bg); border-radius:50%; top:50%; transform:translateY(-50%);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ticket::before{ right:-11px; }
+  .ticket::after{ left:-11px; }
+  .ticket-label{
+    font-size:11.5px; color:var(--muted); font-weight:700;
+    text-transform:uppercase; letter-spacing:0.6px;
+  }
+  .ticket-total{
+    font-size:38px; font-weight:800; color:var(--amber);
+    font-variant-numeric: tabular-nums; line-height:1.15; margin-top:6px;
+    text-shadow: 0 2px 18px rgba(227,154,59,0.25);
+  }
+  .ticket-total span{font-size:15px; font-weight:600; color:var(--muted); margin-inline-start:5px;}
+  .ticket-sub{
+    display:flex; justify-content:space-between;
+    margin-top:16px; padding-top:13px;
+    border-top:1px dashed var(--line);
+    font-size:12.5px; color:var(--muted-2);
+  }
+  .ticket-sub b{color:var(--text); font-weight:700;}
+
+  /* Backup bar */
+  .backup-bar{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+  .btn-ghost{
+    flex:1; min-width:96px; background:var(--card); border:1px solid var(--line);
+    color:var(--muted); border-radius:11px; padding:11px 6px;
+    font-family:'Cairo', sans-serif; font-size:12px; font-weight:700; text-align:center;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .btn-ghost:active{background:var(--card-2); color:var(--text); transform:scale(0.96);}
+
+  /* Add car */
+  .add-car{
+    background:linear-gradient(165deg, var(--card), #292219);
+    border:1px solid var(--line);
+    border-radius:16px; padding:16px; margin-bottom:22px;
+    box-shadow: 0 10px 24px -16px rgba(0,0,0,0.5);
+  }
+  .add-car h2{
+    font-size:13.5px; margin:0 0 11px; color:var(--muted); font-weight:700;
+    display:flex; align-items:center; gap:6px;
+  }
+  .row{display:flex; gap:8px;}
+  input{
+    background:var(--bg-2); border:1px solid var(--line); color:var(--text);
+    border-radius:11px; padding:12px 13px;
+    font-family:'Cairo', sans-serif; font-size:15px; width:100%; outline:none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  input:focus{border-color:var(--amber-dim); box-shadow: 0 0 0 3px rgba(227,154,59,0.12);}
+  input::placeholder{color:var(--muted-2);}
+  button{font-family:'Cairo', sans-serif; border:none; cursor:pointer; font-weight:700;}
+  .btn-primary{
+    background:linear-gradient(165deg, #eba54a, var(--amber));
+    color:#1c1815; border-radius:11px;
+    padding:0 18px; font-size:14.5px; white-space:nowrap;
+    box-shadow: 0 4px 12px -4px rgba(227,154,59,0.5);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-primary:active{transform:scale(0.96); box-shadow: 0 2px 6px -2px rgba(227,154,59,0.4);}
+  .btn-primary:disabled{opacity:0.4;}
+
+  .section-label{
+    font-size:12px; color:var(--muted-2); font-weight:700;
+    margin:0 4px 12px; text-transform:uppercase; letter-spacing:0.6px;
+  }
+
+  /* Car list items - simple tappable rows, nothing expands inline */
+  .car-item{
+    --accent: var(--amber);
+    position:relative;
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:14px; padding:16px 16px 16px 14px; margin-bottom:11px;
+    overflow:hidden;
+    transition: transform 0.12s ease, border-color 0.15s ease;
+  }
+  .car-item::before{
+    content:""; position:absolute; inset-inline-start:0; top:0; bottom:0;
+    width:4px; background:var(--accent);
+  }
+  .car-item:active{transform:scale(0.985); border-color:var(--accent);}
+  .car-item-info{display:flex; align-items:center; gap:12px; min-width:0;}
+  .car-avatar{
+    width:42px; height:42px; border-radius:11px; flex-shrink:0;
+    background: color-mix(in srgb, var(--accent) 16%, var(--bg-2));
+    border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  .car-name{font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .car-meta{font-size:11.5px; color:var(--muted-2); font-weight:500; margin-top:2px;}
+  .car-item-right{display:flex; align-items:center; gap:6px; flex-shrink:0;}
+  .car-total{
+    font-size:16.5px; font-weight:800; color:var(--green);
+    font-variant-numeric: tabular-nums; white-space:nowrap;
+  }
+  .chevron{color:var(--muted-2); font-size:17px; margin-inline-start:2px;}
+
+  .empty{text-align:center; padding:48px 20px; color:var(--muted-2); font-size:13.5px; line-height:1.7;}
+  .empty .big{font-size:38px; margin-bottom:10px; opacity:0.55; filter: grayscale(0.3);}
+
+  /* Wallet summary card (list view) */
+  .wallet-card{
+    display:flex; justify-content:space-between; align-items:center;
+    background:linear-gradient(165deg, #223530, #1c2b27);
+    border:1px solid #37524a;
+    border-radius:15px; padding:15px 16px; margin-bottom:20px;
+    transition: transform 0.12s ease;
+  }
+  .wallet-card:active{transform:scale(0.985);}
+  .wallet-card-left{display:flex; align-items:center; gap:12px;}
+  .wallet-icon{
+    width:42px; height:42px; border-radius:11px; flex-shrink:0;
+    background:rgba(95,163,115,0.16); border:1px solid rgba(95,163,115,0.4);
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  .wallet-label{font-size:14px; font-weight:700; color:var(--text);}
+  .wallet-meta{font-size:11.5px; color:var(--muted-2); margin-top:2px;}
+  .wallet-card-right{display:flex; align-items:center; gap:6px;}
+  .wallet-balance{
+    font-size:18px; font-weight:800; color:var(--green);
+    font-variant-numeric: tabular-nums; white-space:nowrap;
+  }
+  .wallet-balance span{font-size:12px; font-weight:600; color:var(--muted);}
+  .wallet-balance.negative{color:var(--red);}
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--card-2); border:1px solid var(--line);
+    color:var(--text); padding:10px 18px; border-radius:10px;
+    font-size:13px; font-weight:600;
+    opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:99;
+  }
+  .toast.show{opacity:1;}
+
+  /* ===== Detail (single car) full screen ===== */
+  #detailView{
+    position:fixed; inset:0; background:var(--bg);
+    display:none; flex-direction:column; z-index:50;
+    animation: slideIn 0.22s ease-out;
+  }
+  #detailView.open{display:flex;}
+  #walletView{
+    position:fixed; inset:0; background:var(--bg);
+    display:none; flex-direction:column; z-index:51;
+    animation: slideIn 0.22s ease-out;
+  }
+  #walletView.open{display:flex;}
+  @keyframes slideIn{ from{ transform:translateX(-16px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+
+  .detail-header{
+    --accent: var(--amber);
+    position:relative;
+    display:flex; align-items:center; gap:10px;
+    padding:16px 16px 16px;
+    border-bottom:1px solid var(--line);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, var(--bg-2)), var(--bg-2));
+  }
+  .detail-header::after{
+    content:""; position:absolute; inset-inline:0; bottom:-1px; height:2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity:0.6;
+  }
+  .back-btn{
+    width:38px; height:38px; border-radius:11px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--text); font-size:18px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: transform 0.12s ease;
+  }
+  .back-btn:active{background:var(--card-2); transform:scale(0.92);}
+  .detail-title-box{flex:1; min-width:0;}
+  .detail-title{font-size:18px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .detail-title-meta{font-size:11.5px; color:var(--muted-2); margin-top:3px; font-weight:500;}
+  .edit-name-btn{
+    width:38px; height:38px; border-radius:11px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--muted); font-size:15px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: transform 0.12s ease;
+  }
+  .edit-name-btn:active{transform:scale(0.92);}
+
+  .detail-body{flex:1; overflow-y:auto; padding:18px 16px;}
+
+  .car-ticket{
+    --accent: var(--amber);
+    background: linear-gradient(165deg, var(--card-2), #2c241d);
+    border:1px solid var(--line);
+    border-radius:16px; padding:18px; margin-bottom:20px;
+    display:flex; justify-content:space-between; align-items:center;
+    box-shadow: 0 12px 26px -16px rgba(0,0,0,0.55);
+    border-inline-start: 3px solid var(--accent);
+  }
+  .car-ticket-label{font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;}
+  .car-ticket-total{
+    font-size:28px; font-weight:800; color:var(--green);
+    font-variant-numeric: tabular-nums; margin-top:5px;
+  }
+  .car-ticket-total span{font-size:13px; color:var(--muted); font-weight:600; margin-inline-start:4px;}
+
+  /* Big clear add-repair form */
+  .add-repair-card{
+    --accent: var(--amber);
+    background:linear-gradient(165deg, var(--card), #2a2318);
+    border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    border-radius:15px; padding:15px; margin-bottom:22px;
+    box-shadow: 0 10px 22px -16px rgba(0,0,0,0.5);
+  }
+  .add-repair-card h3{
+    font-size:13px; color:var(--accent); font-weight:800; margin:0 0 12px;
+    display:flex; align-items:center; gap:6px; letter-spacing:0.2px;
+  }
+  .add-repair-card .field{margin-bottom:11px;}
+  .add-repair-card label{
+    display:block; font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:6px;
+  }
+  .add-repair-card .btn-primary{
+    width:100%; padding:14px; border-radius:11px; font-size:15px; margin-top:3px;
+  }
+
+  .repairs-section-label{
+    font-size:12px; color:var(--muted-2); font-weight:700;
+    margin:0 4px 12px; display:flex; justify-content:space-between;
+    text-transform:uppercase; letter-spacing:0.4px;
+  }
+
+  .repair-card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:13px; padding:13px 14px; margin-bottom:9px;
+    display:flex; align-items:center; gap:11px;
+    transition: transform 0.12s ease;
+  }
+  .repair-num{
+    --accent: var(--amber);
+    width:27px; height:27px; border-radius:9px; flex-shrink:0;
+    background: color-mix(in srgb, var(--accent) 18%, var(--bg-2));
+    color: var(--accent);
+    font-size:12px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .repair-desc{flex:1; font-size:14.5px; font-weight:500;}
+  .repair-price{
+    font-size:15px; font-weight:800; color:var(--amber);
+    font-variant-numeric: tabular-nums; white-space:nowrap;
+  }
+  .icon-btn{
+    background:transparent; color:var(--muted-2);
+    width:30px; height:30px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; flex-shrink:0;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  }
+  .icon-btn:active{background:rgba(201,96,79,0.15); color:var(--red); transform:scale(0.9);}
+
+  .empty-repairs{
+    text-align:center; padding:30px 10px; color:var(--muted-2); font-size:13px; line-height:1.6;
+    border:1.5px dashed var(--line); border-radius:13px; margin-bottom:10px;
+  }
+
+  .delete-car-zone{
+    margin-top:26px; padding-top:18px; border-top:1px dashed var(--line);
+    text-align:center;
+  }
+  .text-action{
+    background:none; color:var(--muted-2); font-size:12.5px; font-weight:600; padding:9px 14px;
+    border-radius:9px; transition: background 0.12s ease;
+  }
+  .text-action.danger:active{background:rgba(201,96,79,0.12); color:var(--red);}
+
+  /* Wallet full screen */
+  .wallet-quick{display:flex; flex-direction:column; gap:12px; margin-bottom:22px;}
+  .wallet-action-card{
+    border-radius:15px; padding:14px; border:1px solid var(--line);
+    background:var(--card);
+  }
+  .wallet-action-card.deposit{border-inline-start:3px solid var(--green);}
+  .wallet-action-card.withdraw{border-inline-start:3px solid var(--red);}
+  .wallet-action-card h3{
+    font-size:13px; font-weight:800; margin:0 0 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .wallet-action-card.deposit h3{color:var(--green);}
+  .wallet-action-card.withdraw h3{color:var(--red);}
+  .wallet-action-card .field{margin-bottom:9px;}
+  .wallet-action-card label{display:block; font-size:11px; color:var(--muted); font-weight:600; margin-bottom:5px;}
+  .btn-deposit{
+    width:100%; padding:12px; border-radius:10px; font-size:14px;
+    background:linear-gradient(165deg, #74b98a, var(--green)); color:#12261a;
+  }
+  .btn-withdraw{
+    width:100%; padding:12px; border-radius:10px; font-size:14px;
+    background:linear-gradient(165deg, #db7d6c, var(--red)); color:#2a1310;
+  }
+
+  .tx-row{
+    display:flex; align-items:center; gap:11px;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:13px; padding:12px 14px; margin-bottom:9px;
+  }
+  .tx-icon{
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;
+  }
+  .tx-icon.in{background:rgba(95,163,115,0.16); color:var(--green);}
+  .tx-icon.out{background:rgba(201,96,79,0.16); color:var(--red);}
+  .tx-info{flex:1; min-width:0;}
+  .tx-note{font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .tx-date{font-size:11px; color:var(--muted-2); margin-top:2px;}
+  .tx-amount{font-size:14.5px; font-weight:800; font-variant-numeric: tabular-nums; white-space:nowrap;}
+  .tx-amount.in{color:var(--green);}
+  .tx-amount.out{color:var(--red);}
+
+  /* ===== Print / PDF output ===== */
+  #printArea{display:none;}
+  @media print{
+    html, body{ height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; background:#fff !important; }
+    #listView, #detailView, #walletView, .toast{ display:none !important; }
+    #printArea{
+      display:block !important; position:static !important;
+      width:100%; background:#fff; color:#111; font-family:'Cairo', sans-serif;
+      padding:10px 4px;
+    }
+    .p-header{
+      display:flex; justify-content:space-between; align-items:flex-end;
+      border-bottom:3px solid #222; padding-bottom:12px; margin-bottom:18px;
+    }
+    .p-header h1{font-size:20px; margin:0;}
+    .p-header p{font-size:11px; color:#555; margin:4px 0 0;}
+    .p-date{font-size:11px; color:#555; text-align:left;}
+    .p-car-block{margin-bottom:22px; page-break-inside:avoid;}
+    .p-car-title{
+      display:flex; justify-content:space-between; align-items:center;
+      background:#f0f0f0; padding:8px 12px; border-radius:6px;
+      font-size:14px; font-weight:800; margin-bottom:8px;
+    }
+    .p-car-title span{font-weight:800;}
+    table.p-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:6px;}
+    table.p-table th{
+      text-align:right; border-bottom:2px solid #333; padding:6px 8px; font-size:11px; color:#333;
+    }
+    table.p-table td{ border-bottom:1px solid #ddd; padding:7px 8px; }
+    table.p-table td:last-child, table.p-table th:last-child{ text-align:left; }
+    .p-car-total{
+      text-align:left; font-size:13px; font-weight:800; padding:6px 8px;
+    }
+    .p-grand{
+      margin-top:16px; padding-top:14px; border-top:3px solid #222;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .p-grand-label{font-size:14px; font-weight:700;}
+    .p-grand-total{font-size:24px; font-weight:800;}
+    .p-empty{font-size:12px; color:#777; padding:10px 0;}
+    .p-footer{margin-top:24px; font-size:10px; color:#999; text-align:center;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="listView">
+
+  <header>
+    <div class="logo">🔧</div>
+    <div>
+      <h1>دفتر حسابات المعرض</h1>
+      <p>تصليح ومصنعية العربيات</p>
+    </div>
+  </header>
+
+  <div class="ticket">
+    <div>
+      <div class="ticket-label">إجمالي كل العربيات</div>
+      <div class="ticket-total" id="grandTotal">0<span>جنيه</span></div>
+    </div>
+    <div class="ticket-sub">
+      <span>عدد العربيات: <b id="carCount">0</b></span>
+      <span>عدد التصاليح: <b id="repairCount">0</b></span>
+    </div>
+  </div>
+
+  <div class="wallet-card" onclick="openWallet()">
+    <div class="wallet-card-left">
+      <div class="wallet-icon">💰</div>
+      <div>
+        <div class="wallet-label">الفلوس اللي معايا</div>
+        <div class="wallet-meta" id="walletTxCount">0 حركة</div>
+      </div>
+    </div>
+    <div class="wallet-card-right">
+      <div class="wallet-balance" id="walletBalance">0<span> ج</span></div>
+      <div class="chevron">‹</div>
+    </div>
+  </div>
+
+  <div class="backup-bar">
+    <button class="btn-ghost" onclick="exportData()">⬇️ نسخة احتياطية</button>
+    <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ استرجاع نسخة</button>
+    <button class="btn-ghost" onclick="printAllCars()">🖨️ طباعة الكل</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+
+  <div class="add-car">
+    <h2>إضافة عربية جديدة</h2>
+    <div class="row">
+      <input id="newCarName" type="text" placeholder="اسم أو موديل العربية (مثلاً: لانسر 2015)">
+      <button class="btn-primary" onclick="addCar()">إضافة</button>
+    </div>
+  </div>
+
+  <div class="section-label">العربيات · دوس على أي عربية عشان تفتحها</div>
+  <div id="carsList"></div>
+
+</div>
+
+<!-- Full screen detail view: only ONE car shown at a time -->
+<div id="detailView">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">→</button>
+    <div class="detail-title-box">
+      <div class="detail-title" id="detailName">-</div>
+      <div class="detail-title-meta" id="detailMeta">-</div>
+    </div>
+    <button class="edit-name-btn" onclick="renamePrompt(currentCarId)">✏️</button>
+  </div>
+  <div class="detail-body">
+    <div class="car-ticket">
+      <div class="car-ticket-label">إجمالي هذه العربية</div>
+      <div class="car-ticket-total" id="detailTotal">0<span>جنيه</span></div>
+    </div>
+
+    <div class="add-repair-card">
+      <h3>➕ إضافة تصليح لهذه العربية</h3>
+      <div class="field">
+        <label>وصف التصليح</label>
+        <input id="repairDesc" type="text" placeholder="مثلاً: دهان، تبديل زيت، سمكرة...">
+      </div>
+      <div class="field">
+        <label>السعر (جنيه)</label>
+        <input id="repairPrice" type="number" inputmode="decimal" placeholder="0">
+      </div>
+      <button class="btn-primary" onclick="addRepairToCurrent()">إضافة التصليح ده</button>
+    </div>
+
+    <button class="btn-ghost" style="width:100%; margin-bottom:20px;" onclick="printSingleCar(currentCarId)">🖨️ طباعة فاتورة هذه العربية</button>
+
+    <div class="repairs-section-label">
+      <span>التصاليح المسجّلة</span>
+      <span id="repairsCountLabel"></span>
+    </div>
+    <div id="repairsList"></div>
+
+    <div class="delete-car-zone">
+      <button class="text-action danger" onclick="confirmDeleteCar(currentCarId)">🗑 حذف هذه العربية بالكامل</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<!-- Full screen wallet view -->
+<div id="walletView">
+  <div class="detail-header" style="--accent:#5fa373;">
+    <button class="back-btn" onclick="closeWallet()">→</button>
+    <div class="detail-title-box">
+      <div class="detail-title">💰 الخزنة</div>
+      <div class="detail-title-meta" id="walletMeta">-</div>
+    </div>
+    <button class="edit-name-btn" onclick="printWalletLog()">🖨️</button>
+  </div>
+  <div class="detail-body">
+    <div class="car-ticket" style="--accent:#5fa373;">
+      <div>
+        <div class="car-ticket-label">الرصيد الحالي</div>
+        <div class="car-ticket-total" id="walletBalanceBig">0<span>جنيه</span></div>
+      </div>
+    </div>
+
+    <div class="wallet-quick">
+      <div class="wallet-action-card deposit">
+        <h3>➕ إيداع فلوس</h3>
+        <div class="field">
+          <label>المبلغ</label>
+          <input id="depositAmount" type="number" inputmode="decimal" placeholder="0">
+        </div>
+        <div class="field">
+          <label>ملاحظة (اختياري)</label>
+          <input id="depositNote" type="text" placeholder="مثلاً: فلوس من البيت">
+        </div>
+        <button class="btn-deposit" onclick="addWalletTx('deposit')">إضافة الإيداع</button>
+      </div>
+      <div class="wallet-action-card withdraw">
+        <h3>➖ سحب / خصم</h3>
+        <div class="field">
+          <label>المبلغ</label>
+          <input id="withdrawAmount" type="number" inputmode="decimal" placeholder="0">
+        </div>
+        <div class="field">
+          <label>ملاحظة (اختياري)</label>
+          <input id="withdrawNote" type="text" placeholder="مثلاً: مصاريف قطع غيار">
+        </div>
+        <button class="btn-withdraw" onclick="addWalletTx('withdraw')">تسجيل الخصم</button>
+      </div>
+    </div>
+
+    <div class="repairs-section-label">
+      <span>سجل الحركات</span>
+      <span id="walletLogCount"></span>
+    </div>
+    <div id="walletLog"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let cars = [];
+let loaded = false;
+let currentCarId = null;
+let walletTx = [];
+let walletLoaded = false;
+
+const ACCENTS = ['#e39a3b', '#5fa373', '#5b9bd5', '#c9604f', '#a97fd1', '#4fb0a5', '#d9a441', '#c97fb0'];
+function accentFor(id){
+  let h = 0;
+  for(let i=0;i<id.length;i++){ h = (h*31 + id.charCodeAt(i)) >>> 0; }
+  return ACCENTS[h % ACCENTS.length];
+}
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmt(n){ return Number(n || 0).toLocaleString('en-US'); }
+
+/* Storage adapter: uses Claude's window.storage when available (in-chat),
+   falls back to localStorage for standalone/installed app use */
+const dataStore = {
+  async get(key){
+    if(window.storage){
+      try{ const res = await window.storage.get(key, false); return res ? res.value : null; }
+      catch(e){ return null; }
+    }
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  },
+  async set(key, value){
+    if(window.storage){
+      try{ await window.storage.set(key, value, false); return; }catch(e){ /* fall through */ }
+    }
+    try{ localStorage.setItem(key, value); }catch(e){}
+  }
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=> t.classList.remove('show'), 1600);
+}
+
+async function loadCars(){
+  try{
+    const val = await dataStore.get('cars');
+    cars = val ? JSON.parse(val) : [];
+  }catch(e){ cars = []; }
+  loaded = true;
+  renderList();
+}
+
+async function saveCars(){
+  try{ await dataStore.set('cars', JSON.stringify(cars)); }
+  catch(e){ showToast('حصل خطأ في الحفظ، حاول تاني'); }
+}
+
+async function loadWallet(){
+  try{
+    const val = await dataStore.get('wallet-tx');
+    walletTx = val ? JSON.parse(val) : [];
+  }catch(e){ walletTx = []; }
+  walletLoaded = true;
+  renderWalletCard();
+}
+
+async function saveWallet(){
+  try{ await dataStore.set('wallet-tx', JSON.stringify(walletTx)); }
+  catch(e){ showToast('حصل خطأ في حفظ الخزنة، حاول تاني'); }
+}
+
+function walletBalance(){
+  return walletTx.reduce((s,t)=> s + Number(t.amount||0), 0);
+}
+
+function carTotal(car){
+  return (car.repairs || []).reduce((s,r)=> s + Number(r.price||0), 0);
+}
+
+function addCar(){
+  const input = document.getElementById('newCarName');
+  const name = input.value.trim();
+  if(!name){ showToast('اكتب اسم العربية الأول'); return; }
+  cars.unshift({ id: uid(), name, createdAt: new Date().toLocaleDateString('ar-EG'), repairs: [] });
+  input.value = '';
+  saveCars();
+  renderList();
+  showToast('اتضافت العربية ✅');
+}
+
+function deleteCar(id){
+  cars = cars.filter(c => c.id !== id);
+  saveCars();
+  renderList();
+}
+
+function renameCar(carId, newName){
+  const car = cars.find(c=>c.id===carId);
+  if(car && newName.trim()){ car.name = newName.trim(); saveCars(); }
+}
+
+function renamePrompt(carId){
+  const car = cars.find(c=>c.id===carId);
+  if(!car) return;
+  const name = prompt('اسم العربية الجديد:', car.name);
+  if(name !== null && name.trim()){
+    renameCar(carId, name);
+    renderList();
+    if(currentCarId === carId) renderDetail();
+  }
+}
+
+function confirmDeleteCar(carId){
+  const car = cars.find(c=>c.id===carId);
+  if(!car) return;
+  if(confirm(`متأكد إنك عايز تمسح "${car.name}" وكل تصاليحها؟`)){
+    deleteCar(carId);
+    if(currentCarId === carId) closeDetail();
+  }
+}
+
+/* ===== navigation between list <-> single car detail ===== */
+function openCar(id){
+  currentCarId = id;
+  renderDetail();
+  document.getElementById('detailView').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail(){
+  document.getElementById('detailView').classList.remove('open');
+  document.body.style.overflow = '';
+  currentCarId = null;
+  renderList();
+}
+
+/* ===== wallet ===== */
+function openWallet(){
+  renderWallet();
+  document.getElementById('walletView').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWallet(){
+  document.getElementById('walletView').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function addWalletTx(kind){
+  const amountEl = document.getElementById(kind === 'deposit' ? 'depositAmount' : 'withdrawAmount');
+  const noteEl = document.getElementById(kind === 'deposit' ? 'depositNote' : 'withdrawNote');
+  const amount = parseFloat(amountEl.value);
+  if(isNaN(amount) || amount <= 0){ showToast('اكتب مبلغ صح'); amountEl.focus(); return; }
+  const note = noteEl.value.trim() || (kind === 'deposit' ? 'إيداع فلوس' : 'سحب فلوس');
+  walletTx.unshift({
+    id: uid(),
+    type: kind,
+    amount: kind === 'deposit' ? amount : -amount,
+    note,
+    date: new Date().toLocaleDateString('ar-EG')
+  });
+  amountEl.value = '';
+  noteEl.value = '';
+  saveWallet();
+  renderWallet();
+  renderWalletCard();
+  showToast(kind === 'deposit' ? 'اتضاف المبلغ للخزنة ✅' : 'اتسجل الخصم ✅');
+}
+
+function renderWalletCard(){
+  const balance = walletBalance();
+  const el = document.getElementById('walletBalance');
+  el.innerHTML = fmt(balance) + '<span> ج</span>';
+  el.classList.toggle('negative', balance < 0);
+  document.getElementById('walletTxCount').textContent = walletTx.length + ' حركة';
+}
+
+function renderWallet(){
+  const balance = walletBalance();
+  const totalEl = document.getElementById('walletBalanceBig');
+  totalEl.innerHTML = fmt(balance) + '<span>جنيه</span>';
+  totalEl.style.color = balance < 0 ? 'var(--red)' : 'var(--green)';
+  document.getElementById('walletMeta').textContent = `${walletTx.length} حركة مسجلة`;
+  document.getElementById('walletLogCount').textContent = walletTx.length + ' عنصر';
+
+  const log = document.getElementById('walletLog');
+  if(walletTx.length === 0){
+    log.innerHTML = `<div class="empty-repairs">لسه مفيش حركات في الخزنة<br>ابدأ بإضافة إيداع من فوق</div>`;
+    return;
+  }
+  log.innerHTML = walletTx.map(t => {
+    const isIn = t.amount >= 0;
+    const icon = t.type === 'deposit' ? '⬆' : (t.type === 'repair' ? '🔧' : '⬇');
+    return `
+      <div class="tx-row">
+        <div class="tx-icon ${isIn?'in':'out'}">${icon}</div>
+        <div class="tx-info">
+          <div class="tx-note">${escapeHtml(t.note)}</div>
+          <div class="tx-date">${t.date}</div>
+        </div>
+        <div class="tx-amount ${isIn?'in':'out'}">${isIn?'+':''}${fmt(t.amount)} ج</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addRepairToCurrent(){
+  if(!currentCarId) return;
+  const descEl = document.getElementById('repairDesc');
+  const priceEl = document.getElementById('repairPrice');
+  const desc = descEl.value.trim();
+  const price = parseFloat(priceEl.value);
+  if(!desc){ showToast('اكتب وصف التصليح'); descEl.focus(); return; }
+  if(isNaN(price) || price < 0){ showToast('اكتب السعر صح'); priceEl.focus(); return; }
+  const car = cars.find(c=>c.id===currentCarId);
+  if(!car) return;
+  const repair = { id: uid(), desc, price };
+  car.repairs.push(repair);
+  descEl.value = '';
+  priceEl.value = '';
+  descEl.focus();
+  saveCars();
+  renderDetail();
+
+  walletTx.unshift({
+    id: uid(),
+    type: 'repair',
+    amount: -price,
+    note: `${car.name} — ${desc}`,
+    date: new Date().toLocaleDateString('ar-EG'),
+    linkedRepairId: repair.id
+  });
+  saveWallet();
+  renderWalletCard();
+
+  showToast(`اتضاف لـ ${car.name} واتخصم من الخزنة ✅`);
+}
+
+function deleteRepair(carId, repairId){
+  const car = cars.find(c=>c.id===carId);
+  if(!car) return;
+  car.repairs = car.repairs.filter(r=>r.id!==repairId);
+  saveCars();
+  renderDetail();
+  renderList();
+
+  const before = walletTx.length;
+  walletTx = walletTx.filter(t => t.linkedRepairId !== repairId);
+  if(walletTx.length !== before){
+    saveWallet();
+    renderWalletCard();
+  }
+}
+
+/* ===== rendering ===== */
+function renderList(){
+  const list = document.getElementById('carsList');
+  const grand = cars.reduce((s,c)=> s + carTotal(c), 0);
+  const repairCount = cars.reduce((s,c)=> s + (c.repairs?.length||0), 0);
+
+  document.getElementById('grandTotal').innerHTML = fmt(grand) + '<span>جنيه</span>';
+  document.getElementById('carCount').textContent = cars.length;
+  document.getElementById('repairCount').textContent = repairCount;
+
+  if(!loaded){ list.innerHTML = ''; return; }
+
+  if(cars.length === 0){
+    list.innerHTML = `<div class="empty"><div class="big">🚗</div>لسه مفيش عربيات مضافة<br>ابدأ بإضافة أول عربية من فوق</div>`;
+    return;
+  }
+
+  list.innerHTML = cars.map(car => `
+    <div class="car-item" style="--accent:${accentFor(car.id)}" onclick="openCar('${car.id}')">
+      <div class="car-item-info">
+        <div class="car-avatar">🚗</div>
+        <div style="min-width:0;">
+          <div class="car-name">${escapeHtml(car.name)}</div>
+          <div class="car-meta">${(car.repairs||[]).length} تصليح · ${car.createdAt||''}</div>
+        </div>
+      </div>
+      <div class="car-item-right">
+        <div class="car-total">${fmt(carTotal(car))} ج</div>
+        <div class="chevron">‹</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderDetail(){
+  const car = cars.find(c=>c.id===currentCarId);
+  if(!car) return;
+  const accent = accentFor(car.id);
+
+  document.getElementById('detailName').textContent = car.name;
+  document.getElementById('detailMeta').textContent = `${(car.repairs||[]).length} تصليح مسجل`;
+  document.getElementById('detailTotal').innerHTML = fmt(carTotal(car)) + '<span>جنيه</span>';
+  document.getElementById('repairsCountLabel').textContent = (car.repairs||[]).length + ' عنصر';
+
+  document.querySelector('.detail-header').style.setProperty('--accent', accent);
+  document.querySelector('.car-ticket').style.setProperty('--accent', accent);
+  document.querySelector('.add-repair-card').style.setProperty('--accent', accent);
+
+  const repairsList = document.getElementById('repairsList');
+  if(!car.repairs || car.repairs.length === 0){
+    repairsList.innerHTML = `<div class="empty-repairs">لسه مفيش تصاليح مضافة لهذه العربية<br>ضيف أول تصليح من فوق</div>`;
+    return;
+  }
+
+  repairsList.innerHTML = car.repairs.map((r, i) => `
+    <div class="repair-card">
+      <div class="repair-num" style="--accent:${accent}">${i+1}</div>
+      <div class="repair-desc">${escapeHtml(r.desc)}</div>
+      <div class="repair-price">${fmt(r.price)} ج</div>
+      <button class="icon-btn" onclick="deleteRepair('${car.id}','${r.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+/* ===== backup ===== */
+function exportData(){
+  if(cars.length === 0){ showToast('مفيش بيانات لسه عشان تحملها'); return; }
+  const dataStr = JSON.stringify(cars, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `نسخة-احتياطية-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('اتحمل النسخة الاحتياطية ✅');
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!Array.isArray(imported)) throw new Error('bad format');
+      const replace = cars.length > 0
+        ? confirm('عندك بيانات موجودة دلوقتي. دوس "موافق" عشان تستبدلها بالنسخة المستوردة، أو "إلغاء" عشان تضيف النسخة المستوردة فوق بياناتك الحالية.')
+        : true;
+      cars = replace ? imported : imported.concat(cars);
+      saveCars();
+      renderList();
+      showToast('اترجعت البيانات بنجاح ✅');
+    }catch(err){
+      showToast('الملف ده مش نسخة احتياطية صحيحة ❌');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ===== print / PDF ===== */
+function printHeader(subtitle){
+  const dateStr = new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' });
+  return `
+    <div class="p-header">
+      <div>
+        <h1>🔧 دفتر حسابات المعرض</h1>
+        <p>${subtitle}</p>
+      </div>
+      <div class="p-date">تاريخ الطباعة<br>${dateStr}</div>
+    </div>
+  `;
+}
+
+function carTableHtml(car){
+  if(!car.repairs || car.repairs.length === 0){
+    return `<div class="p-empty">لا توجد تصاليح مسجلة لهذه العربية</div>`;
+  }
+  const rows = car.repairs.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(r.desc)}</td>
+      <td>${fmt(r.price)} ج</td>
+    </tr>
+  `).join('');
+  return `
+    <table class="p-table">
+      <thead><tr><th>م</th><th>وصف التصليح</th><th>السعر</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function printSingleCar(carId){
+  const car = cars.find(c=>c.id===carId);
+  if(!car) return;
+  const html = `
+    ${printHeader('فاتورة تصليح عربية')}
+    <div class="p-car-block">
+      <div class="p-car-title"><span>${escapeHtml(car.name)}</span><span>${car.createdAt||''}</span></div>
+      ${carTableHtml(car)}
+      <div class="p-car-total">الإجمالي: ${fmt(carTotal(car))} جنيه</div>
+    </div>
+    <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printAllCars(){
+  if(cars.length === 0){ showToast('مفيش عربيات لسه عشان تطبعها'); return; }
+  const grand = cars.reduce((s,c)=> s + carTotal(c), 0);
+  const blocks = cars.map(car => `
+    <div class="p-car-block">
+      <div class="p-car-title"><span>${escapeHtml(car.name)}</span><span>${fmt(carTotal(car))} ج</span></div>
+      ${carTableHtml(car)}
+    </div>
+  `).join('');
+  const html = `
+    ${printHeader(`تقرير شامل · ${cars.length} عربية`)}
+    ${blocks}
+    <div class="p-grand">
+      <div class="p-grand-label">الإجمالي الكلي لكل العربيات</div>
+      <div class="p-grand-total">${fmt(grand)} جنيه</div>
+    </div>
+    <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printWalletLog(){
+  if(walletTx.length === 0){ showToast('مفيش حركات لسه عشان تطبعها'); return; }
+  const balance = walletBalance();
+  const chronological = [...walletTx].reverse();
+  let running = 0;
+  const rows = chronological.map(t => {
+    running += Number(t.amount||0);
+    const sign = t.amount >= 0 ? '+' : '';
+    return `
+      <tr>
+        <td>${t.date}</td>
+        <td>${escapeHtml(t.note)}</td>
+        <td>${sign}${fmt(t.amount)} ج</td>
+        <td>${fmt(running)} ج</td>
+      </tr>
+    `;
+  }).join('');
+  const html = `
+    ${printHeader('سجل حركة الخزنة')}
+    <table class="p-table">
+      <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>الرصيد بعدها</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="p-grand">
+      <div class="p-grand-label">الرصيد الحالي</div>
+      <div class="p-grand-total">${fmt(balance)} جنيه</div>
+    </div>
+    <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+document.getElementById('newCarName').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') addCar();
+});
+document.getElementById('repairPrice').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') addRepairToCurrent();
+});
+
+loadCars();
+loadWallet();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
