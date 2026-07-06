@@ -7,10 +7,12 @@
 <meta name="description" content="برنامج حسابات تصليح ومصنعية العربيات في المعرض">
 <meta name="theme-color" content="#e39a3b">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --bg: #1c1815;
@@ -384,48 +386,77 @@
   .tx-amount.in{color:var(--green);}
   .tx-amount.out{color:var(--red);}
 
-  /* ===== Print / PDF output ===== */
-  #printArea{display:none;}
+  /* ===== Print / PDF / WhatsApp share output =====
+     Always laid out off-screen (not display:none) so html2canvas can
+     capture it for PDF sharing; @media print repositions it on-page. */
+  #printArea{
+    position:fixed; top:0; left:-10000px; width:794px;
+    background:#fff; color:#111; font-family:'Cairo', sans-serif;
+    padding:20px;
+  }
+  .p-header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:3px solid #222; padding-bottom:12px; margin-bottom:18px;
+  }
+  .p-header h1{font-size:20px; margin:0;}
+  .p-header p{font-size:11px; color:#555; margin:4px 0 0;}
+  .p-date{font-size:11px; color:#555; text-align:left;}
+  .p-car-block{margin-bottom:22px; page-break-inside:avoid;}
+  .p-car-title{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#f0f0f0; padding:8px 12px; border-radius:6px;
+    font-size:14px; font-weight:800; margin-bottom:8px;
+  }
+  .p-car-title span{font-weight:800;}
+  table.p-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:6px;}
+  table.p-table th{
+    text-align:right; border-bottom:2px solid #333; padding:6px 8px; font-size:11px; color:#333;
+  }
+  table.p-table td{ border-bottom:1px solid #ddd; padding:7px 8px; }
+  table.p-table td:last-child, table.p-table th:last-child{ text-align:left; }
+  .p-car-total{
+    text-align:left; font-size:13px; font-weight:800; padding:6px 8px;
+  }
+  .p-grand{
+    margin-top:16px; padding-top:14px; border-top:3px solid #222;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .p-grand-label{font-size:14px; font-weight:700;}
+  .p-grand-total{font-size:24px; font-weight:800;}
+  .p-empty{font-size:12px; color:#777; padding:10px 0;}
+  .p-footer{margin-top:24px; font-size:10px; color:#999; text-align:center;}
+
   @media print{
     html, body{ height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; background:#fff !important; }
     #listView, #detailView, #walletView, .toast{ display:none !important; }
     #printArea{
-      display:block !important; position:static !important;
-      width:100%; background:#fff; color:#111; font-family:'Cairo', sans-serif;
-      padding:10px 4px;
+      position:static !important; left:auto !important; top:auto !important;
+      width:100%; padding:10px 4px;
     }
-    .p-header{
-      display:flex; justify-content:space-between; align-items:flex-end;
-      border-bottom:3px solid #222; padding-bottom:12px; margin-bottom:18px;
-    }
-    .p-header h1{font-size:20px; margin:0;}
-    .p-header p{font-size:11px; color:#555; margin:4px 0 0;}
-    .p-date{font-size:11px; color:#555; text-align:left;}
-    .p-car-block{margin-bottom:22px; page-break-inside:avoid;}
-    .p-car-title{
-      display:flex; justify-content:space-between; align-items:center;
-      background:#f0f0f0; padding:8px 12px; border-radius:6px;
-      font-size:14px; font-weight:800; margin-bottom:8px;
-    }
-    .p-car-title span{font-weight:800;}
-    table.p-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:6px;}
-    table.p-table th{
-      text-align:right; border-bottom:2px solid #333; padding:6px 8px; font-size:11px; color:#333;
-    }
-    table.p-table td{ border-bottom:1px solid #ddd; padding:7px 8px; }
-    table.p-table td:last-child, table.p-table th:last-child{ text-align:left; }
-    .p-car-total{
-      text-align:left; font-size:13px; font-weight:800; padding:6px 8px;
-    }
-    .p-grand{
-      margin-top:16px; padding-top:14px; border-top:3px solid #222;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .p-grand-label{font-size:14px; font-weight:700;}
-    .p-grand-total{font-size:24px; font-weight:800;}
-    .p-empty{font-size:12px; color:#777; padding:10px 0;}
-    .p-footer{margin-top:24px; font-size:10px; color:#999; text-align:center;}
   }
+
+  /* Share/print action row (two buttons side by side) */
+  .action-row{display:flex; gap:8px; margin-bottom:20px;}
+  .action-row .btn-ghost{flex:1;}
+  .btn-share{
+    flex:1; background:linear-gradient(165deg, #3ec97a, #2bb673); color:#0d2415;
+    border-radius:11px; padding:12px 8px; font-size:13px; font-weight:800;
+    text-align:center; transition: transform 0.12s ease;
+  }
+  .btn-share:active{transform:scale(0.96);}
+
+  /* Wallet danger zone (reset / clear log) */
+  .wallet-danger{
+    margin-top:6px; margin-bottom:22px; padding:14px;
+    border:1.5px dashed var(--line); border-radius:13px;
+    display:flex; gap:10px;
+  }
+  .wallet-danger button{
+    flex:1; background:var(--card); border:1px solid var(--line);
+    color:var(--muted); border-radius:10px; padding:10px 6px;
+    font-size:12px; font-weight:700; text-align:center;
+  }
+  .wallet-danger button:active{background:var(--card-2); color:var(--red);}
 </style>
 </head>
 <body>
@@ -467,8 +498,12 @@
   <div class="backup-bar">
     <button class="btn-ghost" onclick="exportData()">⬇️ نسخة احتياطية</button>
     <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ استرجاع نسخة</button>
-    <button class="btn-ghost" onclick="printAllCars()">🖨️ طباعة الكل</button>
     <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+
+  <div class="action-row">
+    <button class="btn-ghost" onclick="printAllCars()">🖨️ طباعة تقرير الكل</button>
+    <button class="btn-share" onclick="shareAllCarsPDF()">📤 واتساب</button>
   </div>
 
   <div class="add-car">
@@ -513,7 +548,10 @@
       <button class="btn-primary" onclick="addRepairToCurrent()">إضافة التصليح ده</button>
     </div>
 
-    <button class="btn-ghost" style="width:100%; margin-bottom:20px;" onclick="printSingleCar(currentCarId)">🖨️ طباعة فاتورة هذه العربية</button>
+    <div class="action-row" style="margin-bottom:20px;">
+      <button class="btn-ghost" onclick="printSingleCar(currentCarId)">🖨️ طباعة</button>
+      <button class="btn-share" onclick="shareSingleCarPDF(currentCarId)">📤 واتساب</button>
+    </div>
 
     <div class="repairs-section-label">
       <span>التصاليح المسجّلة</span>
@@ -537,7 +575,7 @@
       <div class="detail-title">💰 الخزنة</div>
       <div class="detail-title-meta" id="walletMeta">-</div>
     </div>
-    <button class="edit-name-btn" onclick="printWalletLog()">🖨️</button>
+    <button class="edit-name-btn" onclick="closeWallet()" style="visibility:hidden;">🖨️</button>
   </div>
   <div class="detail-body">
     <div class="car-ticket" style="--accent:#5fa373;">
@@ -545,6 +583,11 @@
         <div class="car-ticket-label">الرصيد الحالي</div>
         <div class="car-ticket-total" id="walletBalanceBig">0<span>جنيه</span></div>
       </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-ghost" onclick="printWalletLog()">🖨️ طباعة السجل</button>
+      <button class="btn-share" onclick="shareWalletPDF()">📤 واتساب</button>
     </div>
 
     <div class="wallet-quick">
@@ -579,6 +622,11 @@
       <span id="walletLogCount"></span>
     </div>
     <div id="walletLog"></div>
+
+    <div class="wallet-danger">
+      <button onclick="confirmZeroBalance()">🧮 تصفير الرصيد</button>
+      <button onclick="confirmClearWalletLog()">🗑 مسح كل السجل</button>
+    </div>
   </div>
 </div>
 
@@ -751,6 +799,33 @@ function addWalletTx(kind){
   renderWallet();
   renderWalletCard();
   showToast(kind === 'deposit' ? 'اتضاف المبلغ للخزنة ✅' : 'اتسجل الخصم ✅');
+}
+
+function confirmZeroBalance(){
+  const balance = walletBalance();
+  if(balance === 0){ showToast('الرصيد أصلاً صفر'); return; }
+  if(!confirm(`هيتسجل تعديل بمبلغ ${fmt(Math.abs(balance))} ج عشان الرصيد يبقى صفر، والسجل القديم هيفضل موجود. متأكد؟`)) return;
+  walletTx.unshift({
+    id: uid(),
+    type: 'adjustment',
+    amount: -balance,
+    note: 'تصفير الرصيد',
+    date: new Date().toLocaleDateString('ar-EG')
+  });
+  saveWallet();
+  renderWallet();
+  renderWalletCard();
+  showToast('اتصفّر الرصيد ✅');
+}
+
+function confirmClearWalletLog(){
+  if(walletTx.length === 0){ showToast('السجل فاضي أصلاً'); return; }
+  if(!confirm('هيتمسح سجل الفلوس كله نهائيًا (كل الإيداعات والخصومات)، والرصيد هيرجع صفر. متأكد؟')) return;
+  walletTx = [];
+  saveWallet();
+  renderWallet();
+  renderWalletCard();
+  showToast('اتمسح السجل كله ✅');
 }
 
 function renderWalletCard(){
@@ -981,10 +1056,10 @@ function carTableHtml(car){
   `;
 }
 
-function printSingleCar(carId){
+function buildSingleCarHtml(carId){
   const car = cars.find(c=>c.id===carId);
-  if(!car) return;
-  const html = `
+  if(!car) return null;
+  return `
     ${printHeader('فاتورة تصليح عربية')}
     <div class="p-car-block">
       <div class="p-car-title"><span>${escapeHtml(car.name)}</span><span>${car.createdAt||''}</span></div>
@@ -993,12 +1068,10 @@ function printSingleCar(carId){
     </div>
     <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
   `;
-  document.getElementById('printArea').innerHTML = html;
-  window.print();
 }
 
-function printAllCars(){
-  if(cars.length === 0){ showToast('مفيش عربيات لسه عشان تطبعها'); return; }
+function buildAllCarsHtml(){
+  if(cars.length === 0) return null;
   const grand = cars.reduce((s,c)=> s + carTotal(c), 0);
   const blocks = cars.map(car => `
     <div class="p-car-block">
@@ -1006,7 +1079,7 @@ function printAllCars(){
       ${carTableHtml(car)}
     </div>
   `).join('');
-  const html = `
+  return `
     ${printHeader(`تقرير شامل · ${cars.length} عربية`)}
     ${blocks}
     <div class="p-grand">
@@ -1015,12 +1088,10 @@ function printAllCars(){
     </div>
     <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
   `;
-  document.getElementById('printArea').innerHTML = html;
-  window.print();
 }
 
-function printWalletLog(){
-  if(walletTx.length === 0){ showToast('مفيش حركات لسه عشان تطبعها'); return; }
+function buildWalletHtml(){
+  if(walletTx.length === 0) return null;
   const balance = walletBalance();
   const chronological = [...walletTx].reverse();
   let running = 0;
@@ -1036,7 +1107,7 @@ function printWalletLog(){
       </tr>
     `;
   }).join('');
-  const html = `
+  return `
     ${printHeader('سجل حركة الخزنة')}
     <table class="p-table">
       <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>الرصيد بعدها</th></tr></thead>
@@ -1048,8 +1119,84 @@ function printWalletLog(){
     </div>
     <div class="p-footer">تم إنشاء هذا التقرير من دفتر حسابات المعرض</div>
   `;
+}
+
+function printSingleCar(carId){
+  const html = buildSingleCarHtml(carId);
+  if(!html) return;
   document.getElementById('printArea').innerHTML = html;
   window.print();
+}
+
+function printAllCars(){
+  const html = buildAllCarsHtml();
+  if(!html){ showToast('مفيش عربيات لسه عشان تطبعها'); return; }
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printWalletLog(){
+  const html = buildWalletHtml();
+  if(!html){ showToast('مفيش حركات لسه عشان تطبعها'); return; }
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+/* ===== WhatsApp / share as PDF =====
+   Renders the printArea content off-screen, captures it as an image,
+   wraps it in a PDF, then opens the device's native share sheet
+   (the user picks WhatsApp from there). Falls back to downloading
+   the PDF if native sharing isn't supported on the device/browser. */
+async function captureAndSharePDF(html, filename, shareTitle){
+  if(typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined'){
+    showToast('مكتبة المشاركة لسه بتحمّل، جرب تاني بعد ثانية');
+    return;
+  }
+  const area = document.getElementById('printArea');
+  area.innerHTML = html;
+  await new Promise(r => setTimeout(r, 80));
+  try{
+    const canvas = await html2canvas(area, { scale:2, backgroundColor:'#ffffff', useCORS:true });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'px', format:[canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+    const blob = pdf.output('blob');
+    const file = new File([blob], filename, { type:'application/pdf' });
+
+    if(navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title: shareTitle });
+    }else{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('اتحمّل الـ PDF، ابعته من واتساب يدوي 📎');
+    }
+  }catch(e){
+    if(e && e.name === 'AbortError') return; // user cancelled the share sheet
+    showToast('حصل مشكلة في تجهيز الملف، جرب تاني');
+  }
+}
+
+function shareSingleCarPDF(carId){
+  const car = cars.find(c=>c.id===carId);
+  const html = buildSingleCarHtml(carId);
+  if(!html) return;
+  captureAndSharePDF(html, `فاتورة-${car.name}.pdf`, `فاتورة ${car.name}`);
+}
+
+function shareAllCarsPDF(){
+  const html = buildAllCarsHtml();
+  if(!html){ showToast('مفيش عربيات لسه عشان تشاركها'); return; }
+  captureAndSharePDF(html, 'تقرير-شامل.pdf', 'تقرير شامل - دفتر المعرض');
+}
+
+function shareWalletPDF(){
+  const html = buildWalletHtml();
+  if(!html){ showToast('مفيش حركات لسه عشان تشاركها'); return; }
+  captureAndSharePDF(html, 'سجل-الخزنة.pdf', 'سجل حركة الخزنة');
 }
 
 document.getElementById('newCarName').addEventListener('keydown', e=>{
