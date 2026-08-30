@@ -274,6 +274,16 @@
   }
   .car-ticket-total span{font-size:13px; color:var(--muted); font-weight:600; margin-inline-start:4px;}
 
+.income-box{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--card); border:1px solid var(--line);
+  border-inline-start: 3px solid var(--green);
+  border-radius:14px; padding:14px 16px; margin-bottom:20px;
+}
+.income-box-label{font-size:12.5px; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:7px;}
+.income-box-value{font-size:18px; font-weight:800; color:var(--green); font-variant-numeric: tabular-nums; white-space:nowrap;}
+.income-box-value span{font-size:12px; font-weight:600; color:var(--muted); margin-inline-start:4px;}
+
   /* Big clear add-repair form */
   .add-repair-card{
     --accent: var(--amber);
@@ -585,6 +595,11 @@
       </div>
     </div>
 
+    <div class="income-box">
+      <div class="income-box-label">💵 إجمالي الفلوس اللي دخلت (الإيداعات بس)</div>
+      <div class="income-box-value" id="walletIncomeTotal">0<span>ج</span></div>
+    </div>
+
     <div class="action-row">
       <button class="btn-ghost" onclick="printWalletLog()">🖨️ طباعة السجل</button>
       <button class="btn-share" onclick="shareWalletPDF()">📤 واتساب</button>
@@ -705,6 +720,14 @@ async function saveWallet(){
 
 function walletBalance(){
   return walletTx.reduce((s,t)=> s + Number(t.amount||0), 0);
+}
+
+/* Total of money that came IN only (deposits), not the net balance,
+   and not counting repair/withdraw deductions */
+function walletIncomeTotal(){
+  return walletTx
+    .filter(t => t.type === 'deposit')
+    .reduce((s,t)=> s + Number(t.amount||0), 0);
 }
 
 function carTotal(car){
@@ -843,6 +866,7 @@ function renderWallet(){
   totalEl.style.color = balance < 0 ? 'var(--red)' : 'var(--green)';
   document.getElementById('walletMeta').textContent = `${walletTx.length} حركة مسجلة`;
   document.getElementById('walletLogCount').textContent = walletTx.length + ' عنصر';
+  document.getElementById('walletIncomeTotal').innerHTML = fmt(walletIncomeTotal()) + '<span>ج</span>';
 
   const log = document.getElementById('walletLog');
   if(walletTx.length === 0){
