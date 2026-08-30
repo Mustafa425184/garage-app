@@ -43,9 +43,24 @@
   .wrap{max-width:560px; margin:0 auto; padding:18px 16px 0;}
 
   header{
-    display:flex; align-items:center; gap:12px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:6px 2px 20px;
   }
+  .header-left{display:flex; align-items:center; gap:12px; min-width:0;}
+  .header-balance{
+    flex-shrink:0;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:8px 12px;
+    text-align:center; cursor:pointer;
+    transition: transform 0.12s ease;
+  }
+  .header-balance:active{transform:scale(0.95);}
+  .header-balance-label{font-size:10px; color:var(--muted-2); font-weight:600; white-space:nowrap;}
+  .header-balance-value{
+    font-size:15px; font-weight:800; color:var(--green);
+    font-variant-numeric: tabular-nums; white-space:nowrap; margin-top:1px;
+  }
+  .header-balance-value.negative{color:var(--red);}
   .logo{
     width:46px; height:46px; border-radius:13px;
     background:linear-gradient(155deg, #f0ac54, var(--amber-dim));
@@ -473,10 +488,16 @@
 <div class="wrap" id="listView">
 
   <header>
-    <div class="logo">🔧</div>
-    <div>
-      <h1>دفتر حسابات المعرض</h1>
-      <p>تصليح ومصنعية العربيات</p>
+    <div class="header-left">
+      <div class="logo">🔧</div>
+      <div>
+        <h1>دفتر حسابات المعرض</h1>
+        <p>تصليح ومصنعية العربيات</p>
+      </div>
+    </div>
+    <div class="header-balance" onclick="openWallet()">
+      <div class="header-balance-label">فاضل معايا</div>
+      <div class="header-balance-value" id="headerBalance">0 ج</div>
     </div>
   </header>
 
@@ -857,6 +878,10 @@ function renderWalletCard(){
   el.innerHTML = fmt(balance) + '<span> ج</span>';
   el.classList.toggle('negative', balance < 0);
   document.getElementById('walletTxCount').textContent = walletTx.length + ' حركة';
+
+  const headerEl = document.getElementById('headerBalance');
+  headerEl.textContent = fmt(balance) + ' ج';
+  headerEl.classList.toggle('negative', balance < 0);
 }
 
 function renderWallet(){
