@@ -884,12 +884,28 @@ function addWalletTx(kind){
 }
 
 let editingTxId = null;
+let editingRepairId = null;
+let editingRepairCarId = null;
 
 function editWalletTx(txId){
   const t = walletTx.find(x => x.id === txId);
   if(!t) return;
   editingTxId = txId;
+  editingRepairId = null;
+  editingRepairCarId = null;
   document.getElementById('editAmountInput').value = Math.abs(t.amount);
+  document.getElementById('editModalOverlay').classList.add('open');
+  setTimeout(()=> document.getElementById('editAmountInput').focus(), 50);
+}
+
+function editRepairPrice(carId, repairId){
+  const car = cars.find(c => c.id === carId);
+  const repair = car && (car.repairs||[]).find(r => r.id === repairId);
+  if(!repair) return;
+  editingTxId = null;
+  editingRepairId = repairId;
+  editingRepairCarId = carId;
+  document.getElementById('editAmountInput').value = repair.price;
   document.getElementById('editModalOverlay').classList.add('open');
   setTimeout(()=> document.getElementById('editAmountInput').focus(), 50);
 }
@@ -897,17 +913,59 @@ function editWalletTx(txId){
 function closeEditModal(){
   document.getElementById('editModalOverlay').classList.remove('open');
   editingTxId = null;
+  editingRepairId = null;
+  editingRepairCarId = null;
+}
+
+function findRepairEntry(repairId){
+  for(const car of cars){
+    const repair = (car.repairs||[]).find(r => r.id === repairId);
+    if(repair) return { car, repair };
+  }
+  return null;
 }
 
 function saveEditModal(){
-  const t = walletTx.find(x => x.id === editingTxId);
-  if(!t) return;
   const newAmount = parseFloat(document.getElementById('editAmountInput').value);
   if(isNaN(newAmount) || newAmount <= 0){ showToast('اكتب مبلغ صح'); return; }
-  t.amount = t.type === 'withdraw' ? -newAmount : newAmount;
-  saveWallet();
-  renderWallet();
-  renderWalletCard();
+
+  if(editingRepairId){
+    const car = cars.find(c => c.id === editingRepairCarId);
+    const repair = car && (car.repairs||[]).find(r => r.id === editingRepairId);
+    if(!repair){ closeEditModal(); return; }
+    repair.price = newAmount;
+    saveCars();
+    if(currentCarId === car.id) renderDetail();
+    renderList();
+
+    const linkedTx = walletTx.find(t => t.linkedRepairId === editingRepairId);
+    if(linkedTx){
+      linkedTx.amount = -newAmount;
+      saveWallet();
+      renderWalletCard();
+    }
+  }else{
+    const t = walletTx.find(x => x.id === editingTxId);
+    if(!t){ closeEditModal(); return; }
+
+    if(t.type === 'repair' && t.linkedRepairId){
+      const found = findRepairEntry(t.linkedRepairId);
+      if(found){
+        found.repair.price = newAmount;
+        saveCars();
+        if(currentCarId === found.car.id) renderDetail();
+        renderList();
+      }
+      t.amount = -newAmount;
+    }else{
+      t.amount = t.type === 'withdraw' ? -newAmount : newAmount;
+    }
+
+    saveWallet();
+    renderWallet();
+    renderWalletCard();
+  }
+
   closeEditModal();
   showToast('اتعدّل المبلغ ✅');
 }
@@ -983,7 +1041,7 @@ function renderWallet(){
   log.innerHTML = walletTx.map(t => {
     const isIn = t.amount >= 0;
     const icon = t.type === 'deposit' ? '⬆' : (t.type === 'repair' ? '🔧' : '⬇');
-    const canEdit = t.type === 'deposit' || t.type === 'withdraw';
+    const canEdit = t.type === 'deposit' || t.type === 'withdraw' || t.type === 'repair';
     return `
       <div class="tx-row">
         <div class="tx-icon ${isIn?'in':'out'}">${icon}</div>
@@ -1106,6 +1164,7 @@ function renderDetail(){
       <div class="repair-num" style="--accent:${accent}">${i+1}</div>
       <div class="repair-desc">${escapeHtml(r.desc)}</div>
       <div class="repair-price">${fmt(r.price)} ج</div>
+      <button class="tx-edit-btn" onclick="editRepairPrice('${car.id}','${r.id}')">تعديل</button>
       <button class="icon-btn" onclick="deleteRepair('${car.id}','${r.id}')">✕</button>
     </div>
   `).join('');
