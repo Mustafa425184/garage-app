@@ -410,6 +410,32 @@
   .tx-amount{font-size:14.5px; font-weight:800; font-variant-numeric: tabular-nums; white-space:nowrap;}
   .tx-amount.in{color:var(--green);}
   .tx-amount.out{color:var(--red);}
+  .tx-edit-btn{
+    flex-shrink:0; background:var(--bg-2); border:1px solid var(--line);
+    color:var(--muted); border-radius:9px; padding:7px 10px;
+    font-size:12px; font-weight:700; font-family:'Cairo', sans-serif;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+  }
+  .tx-edit-btn:active{background:var(--card-2); color:var(--amber); transform:scale(0.94);}
+
+  /* Edit-amount modal (replaces native prompt(), which doesn't reliably
+     render inside the packaged TWA/installed app) */
+  #editModalOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.55);
+    display:none; align-items:center; justify-content:center;
+    z-index:60; padding:20px;
+  }
+  #editModalOverlay.open{display:flex;}
+  .edit-modal-card{
+    background:var(--card-2); border:1px solid var(--line);
+    border-radius:16px; padding:20px; width:100%; max-width:340px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+  }
+  .edit-modal-card h3{margin:0 0 14px; font-size:15px; font-weight:800; color:var(--text);}
+  .edit-modal-card label{display:block; font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
+  .edit-modal-actions{display:flex; gap:8px; margin-top:14px;}
+  .edit-modal-actions button{flex:1; padding:12px; border-radius:10px; font-size:14px;}
+  .edit-modal-cancel{background:var(--card); border:1px solid var(--line); color:var(--muted);}
 
   /* ===== Print / PDF / WhatsApp share output =====
      Always laid out off-screen (not display:none) so html2canvas can
@@ -666,6 +692,18 @@
   </div>
 </div>
 
+<div id="editModalOverlay">
+  <div class="edit-modal-card">
+    <h3>تعديل المبلغ</h3>
+    <label>المبلغ الجديد (جنيه)</label>
+    <input id="editAmountInput" type="number" inputmode="decimal" placeholder="0">
+    <div class="edit-modal-actions">
+      <button class="edit-modal-cancel" onclick="closeEditModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveEditModal()">حفظ</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -845,6 +883,50 @@ function addWalletTx(kind){
   showToast(kind === 'deposit' ? 'اتضاف المبلغ للخزنة ✅' : 'اتسجل الخصم ✅');
 }
 
+let editingTxId = null;
+
+function editWalletTx(txId){
+  const t = walletTx.find(x => x.id === txId);
+  if(!t) return;
+  editingTxId = txId;
+  document.getElementById('editAmountInput').value = Math.abs(t.amount);
+  document.getElementById('editModalOverlay').classList.add('open');
+  setTimeout(()=> document.getElementById('editAmountInput').focus(), 50);
+}
+
+function closeEditModal(){
+  document.getElementById('editModalOverlay').classList.remove('open');
+  editingTxId = null;
+}
+
+function saveEditModal(){
+  const t = walletTx.find(x => x.id === editingTxId);
+  if(!t) return;
+  const newAmount = parseFloat(document.getElementById('editAmountInput').value);
+  if(isNaN(newAmount) || newAmount <= 0){ showToast('اكتب مبلغ صح'); return; }
+  t.amount = t.type === 'withdraw' ? -newAmount : newAmount;
+  saveWallet();
+  renderWallet();
+  renderWalletCard();
+  closeEditModal();
+  showToast('اتعدّل المبلغ ✅');
+}
+
+function deleteWalletTx(txId){
+  const t = walletTx.find(x => x.id === txId);
+  if(!t) return;
+  if(t.type === 'repair'){
+    showToast('الحركة دي مرتبطة بتصليح، امسحيها من صفحة العربية');
+    return;
+  }
+  if(!confirm('متأكد إنك عايز تمسح الحركة دي؟')) return;
+  walletTx = walletTx.filter(x => x.id !== txId);
+  saveWallet();
+  renderWallet();
+  renderWalletCard();
+  showToast('اتمسحت الحركة ✅');
+}
+
 function confirmZeroBalance(){
   const balance = walletBalance();
   if(balance === 0){ showToast('الرصيد أصلاً صفر'); return; }
@@ -901,6 +983,7 @@ function renderWallet(){
   log.innerHTML = walletTx.map(t => {
     const isIn = t.amount >= 0;
     const icon = t.type === 'deposit' ? '⬆' : (t.type === 'repair' ? '🔧' : '⬇');
+    const canEdit = t.type === 'deposit' || t.type === 'withdraw';
     return `
       <div class="tx-row">
         <div class="tx-icon ${isIn?'in':'out'}">${icon}</div>
@@ -909,6 +992,8 @@ function renderWallet(){
           <div class="tx-date">${t.date}</div>
         </div>
         <div class="tx-amount ${isIn?'in':'out'}">${isIn?'+':''}${fmt(t.amount)} ج</div>
+        ${canEdit ? `<button class="tx-edit-btn" onclick="editWalletTx('${t.id}')">تعديل</button>` : ''}
+        <button class="icon-btn" onclick="deleteWalletTx('${t.id}')">✕</button>
       </div>
     `;
   }).join('');
@@ -1253,6 +1338,9 @@ document.getElementById('newCarName').addEventListener('keydown', e=>{
 });
 document.getElementById('repairPrice').addEventListener('keydown', e=>{
   if(e.key === 'Enter') addRepairToCurrent();
+});
+document.getElementById('editAmountInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') saveEditModal();
 });
 
 loadCars();
